@@ -1,8 +1,9 @@
-package main
+package geoservice
 
 import (
 	"bufio"
 	"github.com/aliforever/geo-service/geolocation"
+	"net"
 	"os"
 	"time"
 )
@@ -11,8 +12,8 @@ type GeoService struct {
 	db geolocation.Repository
 }
 
-func NewGeoService() (gs *GeoService) {
-	return &GeoService{}
+func NewGeoService(db geolocation.Repository) (gs *GeoService) {
+	return &GeoService{db: db}
 }
 
 func (g *GeoService) ParseCSV(path string) (locations []*geolocation.GeoLocation, stat *Statistics, err error) {
@@ -57,12 +58,12 @@ func (g *GeoService) ParseCSV(path string) (locations []*geolocation.GeoLocation
 	return
 }
 
-func (g *GeoService) StoreLocations(db geolocation.Repository, locations []*geolocation.GeoLocation) (stats *Statistics, err error) {
+func (g *GeoService) StoreLocations(locations []*geolocation.GeoLocation) (stats *Statistics, err error) {
 	begin := time.Now()
 
 	var accepted, discarded int
 	for _, location := range locations {
-		storeErr := db.Store(location)
+		storeErr := g.db.Store(location)
 		if storeErr != nil {
 			discarded++
 			continue
@@ -77,5 +78,10 @@ func (g *GeoService) StoreLocations(db geolocation.Repository, locations []*geol
 		AcceptedEntries:  accepted,
 		DiscardedEntries: discarded,
 	}
+	return
+}
+
+func (g *GeoService) RetrieveLocation(ip net.IP) (location *geolocation.GeoLocation, err error) {
+	location, err = g.db.Retrieve(ip)
 	return
 }
