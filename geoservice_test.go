@@ -158,13 +158,10 @@ func TestGeoService_StoreLocations(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := NewGeoService(tt.args.db)
-			gotStats, err := g.StoreLocations(tt.args.locations)
+			err := g.StoreLocations(tt.args.locations)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("StoreLocations() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if (gotStats.AcceptedEntries != tt.wantStats.AcceptedEntries) || gotStats.DiscardedEntries != tt.wantStats.DiscardedEntries {
-				t.Errorf("StoreLocations() gotStats = %v, want %v", gotStats, tt.wantStats)
 			}
 		})
 	}
@@ -186,7 +183,7 @@ func TestGeoService_RetrieveLocation(t *testing.T) {
 
 	g := NewGeoService(db)
 	locations, _, err := g.ParseCSV("data_dump1.csv")
-	_, err = g.StoreLocations(locations)
+	err = g.StoreLocations(locations)
 	if err != nil {
 		t.Errorf("cant store locations: %s", err)
 		return

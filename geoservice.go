@@ -58,25 +58,12 @@ func (g *GeoService) ParseCSV(path string) (locations []*geolocation.GeoLocation
 	return
 }
 
-func (g *GeoService) StoreLocations(locations []*geolocation.GeoLocation) (stats *Statistics, err error) {
-	begin := time.Now()
-
-	var accepted, discarded int
+func (g *GeoService) StoreLocations(locations []*geolocation.GeoLocation) (err error) {
 	for _, location := range locations {
-		storeErr := g.db.Store(location)
-		if storeErr != nil {
-			discarded++
-			continue
+		err = g.db.Store(location)
+		if err != nil {
+			return
 		}
-		accepted++
-	}
-
-	end := time.Now()
-
-	stats = &Statistics{
-		TimeElapsed:      end.Sub(begin),
-		AcceptedEntries:  accepted,
-		DiscardedEntries: discarded,
 	}
 	return
 }
