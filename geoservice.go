@@ -51,7 +51,7 @@ func (g *GeoService) ParseCSV(path string) (locations []*geolocation.GeoLocation
 	end := time.Now()
 
 	stat = &Statistics{
-		TimeElapsed:      begin.Sub(end),
+		TimeElapsed:      end.Sub(begin),
 		AcceptedEntries:  len(locations),
 		DiscardedEntries: len(rows) - len(locations),
 	}
