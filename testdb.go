@@ -33,6 +33,21 @@ func (t *testDB) Store(g *geolocation.GeoLocation) (err error) {
 	return
 }
 
+func (t *testDB) StoreMany(gs []*geolocation.GeoLocation) (err error) {
+	t.Lock()
+	defer t.Unlock()
+
+	for _, g := range gs {
+		if _, ok := t.data[g.IPAddress.String()]; ok {
+			err = errors.New("data exists")
+			return
+		}
+		t.data[g.IPAddress.String()] = g
+	}
+
+	return
+}
+
 func (t *testDB) Retrieve(ip net.IP) (g *geolocation.GeoLocation, err error) {
 	t.Lock()
 	defer t.Unlock()
