@@ -3,6 +3,7 @@ package geoservice
 import (
 	"bufio"
 	"github.com/aliforever/geo-service/geolocation"
+	"io"
 	"net"
 	"os"
 	"sync"
@@ -19,14 +20,16 @@ func NewGeoService(db geolocation.Repository) (gs *GeoService) {
 
 // initializeWorker receives number of workers defining number of goroutines for initializing GeoLocation from rows
 // And writing the results to the ch channel
-func (g *GeoService) initializeWorker(workers int, rows [][]byte, ch chan *geolocation.GeoLocation) {
+func (g *GeoService) initializeWorker(workers int, rows []string, ch chan *geolocation.GeoLocation) {
 	var wg sync.WaitGroup
 
-	goroutines := len(rows) / workers
+	if workers > len(rows) {
+		workers = len(rows)
+	}
 
+	goroutines := len(rows) / workers
 	var firstIndex, lastIndex int
 	for i := 0; i < goroutines; i++ {
-
 		firstIndex = i * workers
 		lastIndex = firstIndex + workers
 
@@ -36,10 +39,10 @@ func (g *GeoService) initializeWorker(workers int, rows [][]byte, ch chan *geolo
 		}
 
 		wg.Add(1)
-		go func(rows [][]byte) {
+		go func(rows []string) {
 			defer wg.Done()
 			for _, row := range rows {
-				loc, locErr := geolocation.NewGeoLocationFromRowBytes(row)
+				loc, locErr := geolocation.NewGeoLocationFromString(row)
 				if locErr != nil || loc == nil {
 					continue
 				}
@@ -62,31 +65,23 @@ func (g *GeoService) ParseCSV(path string, workers int) (locations []*geolocatio
 	}
 	defer file.Close()
 
-	var fileStat os.FileInfo
-	fileStat, err = file.Stat()
-	if err != nil {
-		return
-	}
+	r := bufio.NewReader(file)
 
-	var maxSize int
-	maxSize = int(fileStat.Size())
-	buffer := make([]byte, 0, maxSize)
-
-	r := bufio.NewScanner(file)
-	r.Buffer(buffer, maxSize)
-
-	r.Scan() // This is to skip header row
+	r.ReadLine() // This is to skip header row
 
 	var rowChan = make(chan *geolocation.GeoLocation)
 
-	var rows [][]byte
-	for r.Scan() {
-		rows = append(rows, r.Bytes())
-	}
-
-	err = r.Err()
-	if err != nil {
-		return
+	var rows []string
+	for {
+		line, _, lineErr := r.ReadLine()
+		if lineErr != nil {
+			if lineErr == io.EOF {
+				break
+			}
+			err = lineErr
+			return
+		}
+		rows = append(rows, string(line))
 	}
 
 	appendBegin := time.Now()
@@ -100,6 +95,7 @@ func (g *GeoService) ParseCSV(path string, workers int) (locations []*geolocatio
 		defer wg.Done()
 
 		var storage = map[string]*geolocation.GeoLocation{}
+
 		for location := range rowChan {
 			if storage[location.IPAddress.String()] != nil {
 				duplicates++
@@ -129,7 +125,7 @@ func (g *GeoService) ParseCSV(path string, workers int) (locations []*geolocatio
 		ElapsedAppend:    appendElapsed,
 		Duplicates:       duplicates,
 		AcceptedEntries:  len(locations),
-		DiscardedEntries: len(rows) - len(locations),
+		DiscardedEntries: len(rows) - len(locations) - duplicates,
 	}
 	return
 }
