@@ -16,6 +16,8 @@ var (
 	emptyLong        = errors.New("empty_longitude")
 )
 
+// escapeCommas replaces commas inside double-quotes or single-quotes with dashes
+// later on these dashes are replaced back with commas
 func escapeCommas(data string) string {
 	r := regexp.MustCompile(`(".*?,.*?")|('.*?,.*?')`)
 
@@ -27,8 +29,9 @@ func escapeCommas(data string) string {
 	return data
 }
 
-func getColumns(data []byte) (columns []string) {
-	trimmed := strings.TrimSpace(string(data))
+// getColumns splits a CSV row by comma and checks if there are double quote escaped commas inside city & country columns.
+func getColumns(data string) (columns []string) {
+	trimmed := strings.TrimSpace(data)
 	columns = strings.Split(trimmed, ",")
 	for index := range columns {
 		columns[index] = strings.TrimSpace(columns[index])
@@ -50,6 +53,7 @@ func getColumns(data []byte) (columns []string) {
 // Latitude & Longitude can't be Empty
 // Latitude & Longitude should be of type Float
 // Mystery Value should be of type Int
+// Note: dashes are replaced with commas to undo escapeCommas edit to country/city columns
 func parseColumns(columns []string) (ipAddr net.IP, countryCode, country, city string, lat, lng float64, mysteryValue int64, err error) {
 	if columns[0] == "" {
 		err = emptyIPAddress
@@ -92,8 +96,10 @@ func parseColumns(columns []string) (ipAddr net.IP, countryCode, country, city s
 	}
 
 	countryCode = columns[1]
-	country = columns[2]
-	city = columns[3]
+	country = strings.ReplaceAll(columns[2], `"`, "")
+	country = strings.ReplaceAll(country, `-`, ",")
+	city = strings.ReplaceAll(columns[3], `"`, "")
+	city = strings.ReplaceAll(city, `-`, ",")
 
 	return
 }

@@ -23,7 +23,7 @@ func NewGeoLocationFromString(data string) (g *GeoLocation, err error) {
 		mysteryValue               int64
 	)
 
-	ipAddr, countryCode, country, city, lat, lng, mysteryValue, err = parseColumns(getColumns([]byte(data)))
+	ipAddr, countryCode, country, city, lat, lng, mysteryValue, err = parseColumns(getColumns(data))
 	if err != nil {
 		return
 	}
