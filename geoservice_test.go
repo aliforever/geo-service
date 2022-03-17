@@ -22,7 +22,8 @@ func TestGeoService_ParseCSV(t *testing.T) {
 	defer os.Remove("data_dump1.csv")
 
 	type args struct {
-		path string
+		path    string
+		workers int
 	}
 
 	tests := []struct {
@@ -34,7 +35,7 @@ func TestGeoService_ParseCSV(t *testing.T) {
 	}{
 		{
 			name: "Test1",
-			args: args{path: "data_dump1.csv"},
+			args: args{path: "data_dump1.csv", workers: 5},
 			wantLocations: []*geolocation.GeoLocation{
 				{
 					IPAddress:    net.ParseIP("200.106.141.15"),
@@ -74,7 +75,7 @@ func TestGeoService_ParseCSV(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &GeoService{}
-			gotLocations, gotStat, err := g.ParseCSV(tt.args.path)
+			gotLocations, gotStat, err := g.ParseCSV(tt.args.path, tt.args.workers)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseCSV() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -182,7 +183,7 @@ func TestGeoService_RetrieveLocation(t *testing.T) {
 	db := newTestDB()
 
 	g := NewGeoService(db)
-	locations, _, err := g.ParseCSV("data_dump1.csv")
+	locations, _, err := g.ParseCSV("data_dump1.csv", 5)
 	err = g.StoreLocations(locations)
 	if err != nil {
 		t.Errorf("cant store locations: %s", err)

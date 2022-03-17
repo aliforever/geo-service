@@ -40,3 +40,29 @@ func NewGeoLocationFromRowBytes(data []byte) (g *GeoLocation, err error) {
 
 	return
 }
+
+func NewGeoLocationFromStringSlice(data []string) (g *GeoLocation, err error) {
+	var (
+		ipAddr                     net.IP
+		countryCode, country, city string
+		lat, lng                   float64
+		mysteryValue               int64
+	)
+
+	ipAddr, countryCode, country, city, lat, lng, mysteryValue, err = parseColumns(data)
+	if err != nil {
+		return
+	}
+
+	g = &GeoLocation{
+		IPAddress:    ipAddr,
+		CountryCode:  countryCode,
+		Country:      country,
+		City:         city,
+		Latitude:     lat,
+		Longitude:    lng,
+		MysteryValue: mysteryValue,
+	}
+
+	return
+}

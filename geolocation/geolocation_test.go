@@ -1,6 +1,7 @@
 package geolocation
 
 import (
+	"net"
 	"testing"
 )
 
@@ -40,7 +41,7 @@ func Test_parseColumns(t *testing.T) {
 	tests := []struct {
 		name             string
 		args             args
-		wantIpAddr       string
+		wantIpAddr       net.IP
 		wantCountryCode  string
 		wantCountry      string
 		wantCity         string
@@ -52,7 +53,7 @@ func Test_parseColumns(t *testing.T) {
 		{
 			name:             "Test1",
 			args:             args{columns: getColumns([]byte(`200.106.141.15,SI,Nepal,DuBuquemouth,-84.87503094689836,7.206435933364332,7823011346`))},
-			wantIpAddr:       "200.106.141.15",
+			wantIpAddr:       net.ParseIP("200.106.141.15"),
 			wantCountryCode:  "SI",
 			wantCountry:      "Nepal",
 			wantCity:         "DuBuquemouth",
@@ -64,7 +65,7 @@ func Test_parseColumns(t *testing.T) {
 		{
 			name:             "Test2",
 			args:             args{columns: getColumns([]byte(`160.103.7.140,CZ,Nicaragua,New Neva,-68.31023296602508,-37.62435199624531,7301823115`))},
-			wantIpAddr:       "160.103.7.140",
+			wantIpAddr:       net.ParseIP("160.103.7.140"),
 			wantCountryCode:  "CZ",
 			wantCountry:      "Nicaragua",
 			wantCity:         "New Neva",
@@ -76,7 +77,7 @@ func Test_parseColumns(t *testing.T) {
 		{
 			name:             "Test3",
 			args:             args{columns: getColumns([]byte(`160.103.7.140,CZ,Nicaragua,New Neva,-68.31023296602508,-37.62435199624531,7301823115,`))},
-			wantIpAddr:       "160.103.7.140",
+			wantIpAddr:       net.ParseIP("160.103.7.140"),
 			wantCountryCode:  "CZ",
 			wantCountry:      "Nicaragua",
 			wantCity:         "New Neva",
@@ -94,7 +95,7 @@ func Test_parseColumns(t *testing.T) {
 				return
 			}
 			if err == nil {
-				if gotIpAddr != tt.wantIpAddr {
+				if gotIpAddr.String() != tt.wantIpAddr.String() {
 					t.Errorf("parseColumns() gotIpAddr = %v, want %v", gotIpAddr, tt.wantIpAddr)
 				}
 				if gotCountryCode != tt.wantCountryCode {
