@@ -30,6 +30,26 @@ func compareLocations(locs1, locs2 []*geolocation.GeoLocation) bool {
 	return true
 }
 
+func BenchmarkGeoService_ParseCSV(b *testing.B) {
+	info := "ip_address,country_code,country,city,latitude,longitude,mystery_value\n"
+	info += "201.106.141.15,SI,Nepal,DuBuquemouth,-84.87503094689836,7.206435933364332,7823011346\n"
+	info += "70.95.73.73,TL,Saudi Arabia,Gradymouth,-49.16675918861615,-86.05920084416894,2559997162\n"
+	info += "160.103.7.140,CZ,Nicaragua,New Neva,-68.31023296602508,-37.62435199624531,7301823115\n"
+	info += ",PY,Falkland Islands (Malvinas),,75.41685191518815,-144.6943217219469,0"
+	err := ioutil.WriteFile("data_dump1.csv", []byte(info), 0644)
+	if err != nil {
+		b.Errorf("ParseCSV() error = cant write test data: %s", err)
+		return
+	}
+	defer os.Remove("data_dump1.csv")
+
+	for n := 0; n < b.N; n++ {
+		g := &GeoService{}
+		g.ParseCSV("data_dump1.csv", 5)
+	}
+
+}
+
 func TestGeoService_ParseCSV(t *testing.T) {
 	info := "ip_address,country_code,country,city,latitude,longitude,mystery_value\n"
 	info += "201.106.141.15,SI,Nepal,DuBuquemouth,-84.87503094689836,7.206435933364332,7823011346\n"
