@@ -140,6 +140,11 @@ func (g *GeoService) StoreLocations(locations []*geolocation.GeoLocation) (err e
 	return
 }
 
+func (g *GeoService) StoreLocationsBatch(locations []*geolocation.GeoLocation) (err error) {
+	err = g.db.StoreMany(locations)
+	return
+}
+
 func (g *GeoService) RetrieveLocation(ip net.IP) (location *geolocation.GeoLocation, err error) {
 	location, err = g.db.Retrieve(ip)
 	return
