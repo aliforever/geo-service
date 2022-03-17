@@ -15,32 +15,6 @@ type GeoLocation struct {
 	MysteryValue int64   `json:"mystery_value"`
 }
 
-func NewGeoLocationFromRowBytes(data []byte) (g *GeoLocation, err error) {
-	var (
-		ipAddr                     net.IP
-		countryCode, country, city string
-		lat, lng                   float64
-		mysteryValue               int64
-	)
-
-	ipAddr, countryCode, country, city, lat, lng, mysteryValue, err = parseColumns(getColumns(data))
-	if err != nil {
-		return
-	}
-
-	g = &GeoLocation{
-		IPAddress:    ipAddr,
-		CountryCode:  countryCode,
-		Country:      country,
-		City:         city,
-		Latitude:     lat,
-		Longitude:    lng,
-		MysteryValue: mysteryValue,
-	}
-
-	return
-}
-
 func NewGeoLocationFromString(data string) (g *GeoLocation, err error) {
 	var (
 		ipAddr                     net.IP
