@@ -22,3 +22,14 @@ The package has an interface called `Repository` with 3 functions to store or re
 - Store
 - StoreMany
 - Retrieve
+
+## Note:
+This is an offline package, therefore you need to replace its path using `replace` keyword in `go.mod` file of your 
+applications using the package.
+
+As an example:
+```
+replace github.com/aliforever/geo-service => ../geo-service
+
+require github.com/aliforever/geo-service v0.0.0-00010101000000-000000000000
+```
